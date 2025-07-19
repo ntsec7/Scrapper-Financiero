@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 # El ticker es un código que identifica a una empresa en Bolsa
-def buscar_ticker(nombre_empresa):
+def buscar(nombre_empresa):
     
     #Usamos webdriver para iniciar el navegador
     service= Service("./chromedriver")
@@ -36,10 +36,10 @@ def buscar_ticker(nombre_empresa):
             scroll_button.click()
 
             #Esperar y hacer clic en el botón "Rechazar todo"
-            rechazar = WebDriverWait(driver, 10).until(
+            deny = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.CLASS_NAME, "reject-all"))
             )
-            rechazar.click()
+            deny.click()
 
         except Exception as e:
             print("No se pudo rechazar el consentimiento:", e)
@@ -60,9 +60,46 @@ def buscar_ticker(nombre_empresa):
             lambda d: "/quote/" in d.current_url
         )
         
-        # Extraemos el ticker de la URL
-        current_url = driver.current_url
-        return current_url
+        url= driver.current_url
+        
+        # Entramos en la URL sin el panel de busqueda
+        driver.get(url)
+        
+        # Recopilamos los datos de la empresa
+        #Obtenemos el html completo de la página
+        html=driver.page_source
+        
+        #Creamos el objeto beautiful soup
+        soup= BeautifulSoup(html, "html.parser")    #Para que podamos navegar por los contenidos como si fuese un arbol
+        
+        datos={}
+        
+        #Nombre
+        name=soup.find("h1", class_="yf-4vbjci")
+        datos["Nombre"]= name.text if name else "N/A"
+        
+        #Precio actual
+        price=soup.find(attrs={"data-testid":"qsp-price"})
+        datos["Precio actual"]= price.text if price else "N/A"
+        
+        #Cambio diario (valor + porcentaje)
+        change=soup.find(attrs={"data-testid":"qsp-price-change"})
+        percent=soup.find(attrs={"data-testid":"qsp-price-change-percent"})
+        if change and percent:
+            datos["Cambio diario"]= f"{change.text} ({percent.text})"
+        else:
+            datos["Cambio diario"]="N/A"
+                
+        #Resto de datos
+        for li in soup.find_all("li", class_="yf-z3c4f6"):
+            spans=li.find_all("span")
+            if len(spans)>=2:
+                clave=spans[0].text.strip() #strip para eliminar los espacios extras o saltos de linea
+                valor=spans[1].text.strip()
+                datos[clave]=valor
+        
+        return datos
+        
         
     except Exception as e:
         print("Error: ", e)
@@ -75,8 +112,8 @@ def buscar_ticker(nombre_empresa):
 if __name__ == "__main__":
 
     nombre_empresa= input("Introduzca el nombre de la empresa: ")
-    ticker= buscar_ticker(nombre_empresa)
-    if ticker:
-        print(f"El ticker de {nombre_empresa} es {ticker}") #f para que sustituya las variables
+    datos= buscar(nombre_empresa)
+    if datos:
+        print(f"Los datos de {nombre_empresa} son {datos}") #f para que sustituya las variables
     else:
         print("No se hayaron resultados")
