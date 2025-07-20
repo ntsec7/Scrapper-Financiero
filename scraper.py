@@ -9,6 +9,9 @@ import csv
 from datetime import datetime
 import os
 
+# Cambia el directorio actual al del script. Para poder ejecutarlo con cron usando rutas relativas
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 driver=None #Lo declaramos global para que solo tenga que abrir y cerrar la web una vez
 anterior_url=None
 
@@ -146,7 +149,7 @@ def guardar_datos(datos, archivo="historico.csv"):
     
 if __name__ == "__main__":
 
-    with open("empresas.txt","r") as file:  #Abre en modo lectura(r) el archivo. Usando with se cierra automaticamente
+    with open("./empresas.txt","r") as file:  #Abre en modo lectura(r) el archivo. Usando with se cierra automaticamente
         nombres_empresas= [line.strip() for line in file if line.strip()]
         
     total_datos=[]
