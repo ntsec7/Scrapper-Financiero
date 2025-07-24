@@ -12,3 +12,7 @@ Hay dos ejecutables:
 
    - **grafica.py**: Muestra un menú interactivo con el que crea una gráfica de la evolución de los precios de una empresa en particular o de todas las empresas. Recoge los datos del archivo que se le pase como          o de *historico.csv* por defecto.
 
+
+## Licencia
+Este proyecto está licenciado bajo la [Licencia MIT](./LICENSE).  
+
